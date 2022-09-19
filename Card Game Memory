@@ -1,0 +1,88 @@
+# Link to one of the  projects of the course called "Memory" which consists of a game where the player tries to keep turned the cards by pairing equal numbers hidden in 
+# each of them in as few rounds as possible.
+
+# https://py2.codeskulptor.org/#user49_CDINPeh2On_0.py
+
+##
+
+# Code:
+
+import simplegui
+import random
+deck1 = range(1,9)
+deck2 = range(1,9)
+deck = deck1 + deck2
+random.shuffle(deck)
+WIDTH = 800
+width_increment = WIDTH/ len(deck)
+HEIGHT = 100
+state = 0
+turns = 0
+exposed = [False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False]
+
+
+# helper function to initialize globals
+def new_game():
+    global exposed, deck, turns
+    random.shuffle(deck)
+    exposed = [False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False]
+    turns = 0
+    label.set_text("Turns = " + str(turns))
+    
+# define event handlers
+def mouseclick(pos):
+    global index, state, exposed, index1, index2, turns
+    # add game state logic here
+    count = 0
+    for x in deck:
+        if pos[0] >= width_increment * count and pos[0] < width_increment * (count + 1) :
+            index = count
+        count += 1    
+    
+    if state == 0:
+        state = 1
+        index1 = index
+    elif state == 1:
+        if exposed[index] == False:
+            state = 2
+            index2 = index
+            if deck[index1] == deck[index2]:
+                exposed[index1] = "solved"
+                exposed[index2] = "solved"
+            turns += 1
+            label.set_text("Turns = " + str(turns))
+    else:
+        if exposed[index] == False:
+            state = 1
+            index1 = index
+            for x in exposed:
+                if x == True: 
+                    exposed[exposed.index(x)] = False
+                
+    if exposed[index] == False:
+        exposed[index] = True
+        
+# cards are logically 50x100 pixels in size    
+def draw(canvas):
+    cards_space = 0
+    exposed_iterations = 1
+    for x in deck:
+        canvas.draw_text(str(x), (cards_space, HEIGHT/1.25), 100, "Blue")
+        cards_space += width_increment
+    for i in exposed:
+        if i == False:
+            canvas.draw_polygon([[width_increment * (exposed_iterations - 1), 100], [width_increment * (exposed_iterations - 1), 0], [width_increment * exposed_iterations, 0], [width_increment * exposed_iterations, 100]], 1, 'Red', 'Yellow')
+        exposed_iterations += 1
+
+# create frame and add a button and labels
+frame = simplegui.create_frame("Memory", WIDTH, HEIGHT)
+frame.add_button("Reset", new_game)
+label = frame.add_label("Turns = 0")
+
+# register event handlers
+frame.set_mouseclick_handler(mouseclick)
+frame.set_draw_handler(draw)
+
+# get things rolling
+new_game()
+frame.start()
